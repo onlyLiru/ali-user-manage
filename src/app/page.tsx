@@ -1,9 +1,10 @@
 "use client";
+
 import React, { useState } from "react";
 import type { Item } from "@/types";
 import { Form, Table, Button } from "antd";
 import EditableCell from "components/EditableCell";
-import { getAddress, getOriginData, mergeColumns } from "@/utils";
+import { getOriginData, mergeColumns } from "@/utils";
 import useColumns from "@/hooks/useColumns";
 
 const originData = getOriginData();

@@ -1,3 +1,4 @@
+import type { ColumnsType } from "antd/es/table";
 import type { Item } from "@/types";
 
 const getRandom = () => {
@@ -21,7 +22,10 @@ export const getOriginData = () => {
   return originData;
 };
 
-export const mergeColumns = (columns: any, isEditing: any) => {
+export const mergeColumns = (
+  columns: ColumnsType<Item>,
+  isEditing: Function
+) => {
   return columns.map((col: any) => {
     if (!col.editable) {
       return col;

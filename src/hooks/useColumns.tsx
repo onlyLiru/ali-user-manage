@@ -1,15 +1,9 @@
+"use client";
+
 import { MouseEvent } from "react";
-import {
-  Form,
-  Input,
-  InputNumber,
-  Popconfirm,
-  Table,
-  Typography,
-  Button,
-  Space,
-} from "antd";
-import List from "components/List";
+import type { ColumnsType } from "antd/es/table";
+
+import { Popconfirm, Typography, Space } from "antd";
 import type { Item } from "@/types";
 
 interface IProps {
@@ -21,7 +15,7 @@ interface IProps {
 }
 
 const useColumns = ({ isEditing, save, cancel, deleteItem, edit }: IProps) => {
-  const columns = [
+  const columns: ColumnsType<Item> = [
     {
       title: "姓名",
       dataIndex: "name",
@@ -77,7 +71,8 @@ const useColumns = ({ isEditing, save, cancel, deleteItem, edit }: IProps) => {
         );
       },
     },
-  ];
+  ] as ColumnsType<Item>;
+
   return [columns];
 };
 

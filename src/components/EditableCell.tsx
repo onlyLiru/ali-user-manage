@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import type { EditableCellProps, Item } from "@/types";
 import { Form, Input, InputNumber } from "antd";

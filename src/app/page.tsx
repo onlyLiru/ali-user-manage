@@ -1,72 +1,18 @@
-"use client"
-
+"use client";
 import React, { useState } from "react";
-import { Form, Input, InputNumber, Popconfirm, Table, Typography } from "antd";
+import type { Item } from "@/types";
+import { Form, Table, Button } from "antd";
+import EditableCell from "components/EditableCell";
+import { getAddress, getOriginData, mergeColumns } from "@/utils";
+import useColumns from "@/hooks/useColumns";
 
-interface Item {
-  key: string;
-  name: string;
-  age: number;
-  address: string;
-}
-
-const originData: Item[] = [];
-for (let i = 0; i < 100; i++) {
-  originData.push({
-    key: i.toString(),
-    name: `Edward ${i}`,
-    age: 32,
-    address: `London Park no. ${i}`,
-  });
-}
-interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
-  editing: boolean;
-  dataIndex: string;
-  title: any;
-  inputType: "number" | "text";
-  record: Item;
-  index: number;
-  children: React.ReactNode;
-}
-
-const EditableCell: React.FC<EditableCellProps> = ({
-  editing,
-  dataIndex,
-  title,
-  inputType,
-  record,
-  index,
-  children,
-  ...restProps
-}) => {
-  const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
-
-  return (
-    <td {...restProps}>
-      {editing ? (
-        <Form.Item
-          name={dataIndex}
-          style={{ margin: 0 }}
-          rules={[
-            {
-              required: true,
-              message: `Please Input ${title}!`,
-            },
-          ]}
-        >
-          {inputNode}
-        </Form.Item>
-      ) : (
-        children
-      )}
-    </td>
-  );
-};
+const originData = getOriginData();
 
 const App: React.FC = () => {
   const [form] = Form.useForm();
   const [data, setData] = useState(originData);
-  const [editingKey, setEditingKey] = useState("");
+
+  const [editingKey, setEditingKey] = useState<number | undefined>();
 
   const isEditing = (record: Item) => record.key === editingKey;
 
@@ -75,8 +21,12 @@ const App: React.FC = () => {
     setEditingKey(record.key);
   };
 
+  const deleteItem = (record: Partial<Item> & { key: React.Key }) => {
+    const newData = data.filter((item) => item.key !== record.key);
+    setData(newData);
+  };
   const cancel = () => {
-    setEditingKey("");
+    setEditingKey(undefined);
   };
 
   const save = async (key: React.Key) => {
@@ -92,98 +42,63 @@ const App: React.FC = () => {
           ...row,
         });
         setData(newData);
-        setEditingKey("");
+        setEditingKey(undefined);
       } else {
         newData.push(row);
         setData(newData);
-        setEditingKey("");
+        setEditingKey(undefined);
       }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
   };
 
-  const columns = [
-    {
-      title: "name",
-      dataIndex: "name",
-      width: "25%",
-      editable: true,
-    },
-    {
-      title: "age",
-      dataIndex: "age",
-      width: "15%",
-      editable: true,
-    },
-    {
-      title: "address",
-      dataIndex: "address",
-      width: "40%",
-      editable: true,
-    },
-    {
-      title: "operation",
-      dataIndex: "operation",
-      render: (_: any, record: Item) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <span>
-            <Typography.Link
-              onClick={() => save(record.key)}
-              style={{ marginRight: 8 }}
-            >
-              Save
-            </Typography.Link>
-            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-              <a>Cancel</a>
-            </Popconfirm>
-          </span>
-        ) : (
-          <Typography.Link
-            disabled={editingKey !== ""}
-            onClick={() => edit(record)}
-          >
-            Edit
-          </Typography.Link>
-        );
-      },
-    },
-  ];
+  const [columns] = useColumns({ isEditing, save, cancel, deleteItem, edit });
+  const mergedColumns = mergeColumns(columns, isEditing);
 
-  const mergedColumns = columns.map((col) => {
-    if (!col.editable) {
-      return col;
-    }
-    return {
-      ...col,
-      onCell: (record: Item) => ({
-        record,
-        inputType: col.dataIndex === "age" ? "number" : "text",
-        dataIndex: col.dataIndex,
-        title: col.title,
-        editing: isEditing(record),
-      }),
+  const handleAdd = () => {
+    const key = data.length + 1;
+    const newData: Item = {
+      key,
+      name: `亚历山大 ${key} 世`,
+      age: 32,
+      address: "getAddress(key)",
     };
-  });
+    setData([...data, newData]);
+  };
 
   return (
-    <Form form={form} component={false}>
-      <Table
-        components={{
-          body: {
-            cell: EditableCell,
-          },
-        }}
-        bordered
-        dataSource={data}
-        columns={mergedColumns}
-        rowClassName="editable-row"
-        pagination={{
-          onChange: cancel,
-        }}
-      />
-    </Form>
+    <main
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        padding: "20px",
+        background: "#fff",
+        height: "100vh",
+      }}
+    >
+      <div style={{ width: "80vw" }}>
+        <Button onClick={handleAdd} type="primary" style={{ marginBottom: 16 }}>
+          新增用户
+        </Button>
+        <Form form={form} component={false}>
+          <Table
+            components={{
+              body: {
+                cell: EditableCell,
+              },
+            }}
+            bordered
+            dataSource={data}
+            columns={mergedColumns}
+            rowClassName="editable-row"
+            pagination={{
+              onChange: cancel,
+            }}
+          />
+        </Form>
+      </div>
+    </main>
   );
 };
 
